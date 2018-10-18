@@ -3,6 +3,10 @@ const Hapi = require('hapi')
 
 require('env2')(path.resolve(__dirname, './.env'))
 const config = require('./config')
+
+// 插件
+const pluginSwagger = require('./plugins/swagger')
+// 路由
 const routerHi = require('./routes/hi')
 
 const server = new Hapi.Server({
@@ -11,6 +15,7 @@ const server = new Hapi.Server({
 })
 
 const init = async () => {
+  await server.register([...pluginSwagger])
   server.route([...routerHi])
 
   await server.start()
