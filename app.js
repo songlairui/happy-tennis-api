@@ -8,6 +8,7 @@ require('env2')(
   )
 )
 const config = require('./config')
+const transformRouter = require('./utils/transformRouter')
 
 // 插件
 const pluginSwagger = require('./plugins/swagger')
@@ -21,7 +22,7 @@ const server = new Hapi.Server({
 
 const init = async () => {
   await server.register([...pluginSwagger])
-  server.route([...routerHi])
+  server.route(transformRouter([...routerHi]))
 
   await server.start()
   console.warn('Server running at:', server.info.uri)

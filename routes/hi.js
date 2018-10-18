@@ -1,7 +1,6 @@
 module.exports = [
   {
-    method: 'GET',
-    path: '/hi',
+    _: ['/hi', 'GET'],
     handler(request, h) {
       return 'hello'
     },
