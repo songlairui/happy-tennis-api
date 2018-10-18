@@ -1,0 +1,21 @@
+{
+  "name": "tennis-api",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "env2": "^2.2.2",
+    "hapi": "^17.6.0",
+    "hapi-auth-jwt2": "^8.1.0",
+    "inert": "^5.1.0",
+    "joi": "^14.0.0",
+    "package": "^1.0.1",
+    "vision": "^5.4.0"
+  }
+}
