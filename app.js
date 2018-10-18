@@ -1,7 +1,12 @@
 const path = require('path')
 const Hapi = require('hapi')
 
-require('env2')(path.resolve(__dirname, './.env'))
+require('env2')(
+  path.resolve(
+    __dirname,
+    process.env.NODE_ENV === 'production' ? './.env.prop' : './.env'
+  )
+)
 const config = require('./config')
 
 // 插件
