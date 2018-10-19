@@ -1,4 +1,5 @@
-import Joi from 'joi'
+const Joi = require('joi')
+
 const paginationDefine = {
   limit: Joi.number()
     .integer()
@@ -13,4 +14,10 @@ const paginationDefine = {
   pagination: Joi.boolean().description('是否开启分页')
 }
 
-module.exports = { paginationDefine }
+const jwtHeaderDefine = {
+  headers: Joi.object({
+    authorization: Joi.string().required()
+  }).unknown()
+}
+
+module.exports = { paginationDefine, jwtHeaderDefine }

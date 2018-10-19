@@ -1,4 +1,5 @@
 const models = require('../models')
+const { jwtHeaderDefine } = require('../utils/router-helper')
 
 module.exports = [
   {
@@ -10,7 +11,10 @@ module.exports = [
     },
     config: {
       tags: ['api', 'trace'],
-      description: '各种记录'
+      description: '各种记录',
+      validate: {
+        ...jwtHeaderDefine
+      }
     }
   }
 ]

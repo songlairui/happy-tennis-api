@@ -6,7 +6,8 @@ module.exports = [
     },
     config: {
       tags: ['api', 'tests'],
-      description: '测试 hello-world'
+      description: '测试 hello-world',
+      auth: false
     }
   }
 ]
