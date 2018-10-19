@@ -7,14 +7,14 @@ const people = {
   }
 }
 
-const validate = (decoded, request) => {
+const validate = decoded => {
   // do your checks to see if the person is valid
   return { isValid: !!people[decoded.id] }
 }
 
 module.exports = server => {
   server.auth.strategy('jwt', 'jwt', {
-    key: config.jwtSecert,
+    key: config.jwtSecret,
     validate
   })
   server.auth.default('jwt')
