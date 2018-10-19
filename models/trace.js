@@ -7,7 +7,8 @@ module.exports = (sequelize, DataTypes) =>
         autoIncrement: true,
         primaryKey: true
       },
-      remark: DataTypes.STRING,
+      remark: DataTypes.JSONB,
+      type: DataTypes.STRING,
       created_at: DataTypes.DATE,
       updated_at: DataTypes.DATE
     },

@@ -8,7 +8,8 @@ module.exports = {
         autoIncrement: true,
         primaryKey: true
       },
-      remark: Sequelize.STRING,
+      remark: Sequelize.JSONB,
+      type: Sequelize.STRING,
       created_at: Sequelize.DATE,
       updated_at: Sequelize.DATE
     }),
