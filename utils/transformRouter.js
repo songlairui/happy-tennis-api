@@ -3,33 +3,30 @@ function fullfilOne(_route) {
     _,
     method: _method = 'GET',
     path: _path,
-    handler: oriHandler,
+    handler: oriHandler = () => ({ code: 500, msg: '// TODO' }),
     ...result
   } = _route
   let path = _path
   let method = _method
+  // 展开属性值
   if (Array.isArray(_)) {
     ;[path = _path, method = _method] = _
   }
-  let handler
-  if (oriHandler) {
-    // wrap try Catch
-    handler = async (request, ...params) => {
-      try {
-        return await oriHandler.call(this, request, ...params)
-      } catch (err) {
-        const match = err.message.match(/^[\.\*\~\-\+\!\>\<\=]+\s*/)
-        if (match) {
-          return { code: 400, msg: err.message.replace(match[0], '') }
-        }
-        console.warn(err.message)
-        throw err
-      }
-    }
-  } else {
-    handler = () => ({ code: 500, msg: '// TODO' })
-  }
+  // wrap try Catch
+  const handler = transformHandler(oriHandler)
   return { method, path, handler, ...result }
+}
+
+function transformHandler(handler) {
+  return async (...params) => {
+    try {
+      return await handler.apply(null, params)
+    } catch (err) {
+      const match = err.message.match(/^[\.\*\~\-\+\!\>\<\=]+\s*/)
+      if (!match) throw err
+      return { code: 400, msg: err.message.replace(match[0], '') }
+    }
+  }
 }
 
 module.exports = function fullfill(routers) {
