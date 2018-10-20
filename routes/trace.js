@@ -11,7 +11,7 @@ module.exports = [
         attributes: ['id', 'remark', 'type']
       })
     },
-    config: {
+    options: {
       tags,
       description: '各种记录',
       validate: {
@@ -35,7 +35,7 @@ module.exports = [
           return 'error'
         })
     },
-    config: {
+    options: {
       tags,
       description: '创建一条记录',
       auth: false,

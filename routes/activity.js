@@ -7,7 +7,7 @@ module.exports = [
   {
     _: ['/activities'],
     async handler(request) {},
-    config: {
+    options: {
       tags,
       auth: false
     }
@@ -15,7 +15,7 @@ module.exports = [
   {
     _: ['/activity/:id'],
     async handler(request) {},
-    config: {
+    options: {
       tags,
       auth: false
     }
@@ -23,7 +23,7 @@ module.exports = [
   {
     _: ['/activity', 'POST'],
     async handler(request) {},
-    config: {
+    options: {
       tags,
       validate: {
         ...jwtHeaderDefine
@@ -33,7 +33,7 @@ module.exports = [
   {
     _: ['/activity/:id', 'PUT'],
     async handler(request) {},
-    config: {
+    options: {
       tags,
       validate: {
         ...jwtHeaderDefine
@@ -43,7 +43,7 @@ module.exports = [
   {
     _: ['/activity/:id', 'DELETE'],
     async handler(request) {},
-    config: {
+    options: {
       tags,
       validate: {
         ...jwtHeaderDefine
