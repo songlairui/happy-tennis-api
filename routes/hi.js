@@ -1,15 +1,5 @@
-const JWT = require('jsonwebtoken')
 const Joi = require('joi')
-
-const generateJwt = ({ id }) => {
-  return JWT.sign(
-    {
-      id,
-      exp: Math.floor(new Date().getTime() / 1000) + 7 * 24 * 60 * 60
-    },
-    process.env.JWT_SECRET
-  )
-}
+const generateJwt = require('../utils/generate-jwt')
 
 const tags = ['api', 'tests']
 

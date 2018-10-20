@@ -1,9 +1,11 @@
 const Joi = require('joi')
 const axios = require('axios')
 const models = require('../models')
-const { jwtHeaderDefine } = require('../utils/router-helper')
-const urls = require('../config/wx-url')
 const config = require('../config')
+const urls = require('../config/wx-url')
+const { jwtHeaderDefine } = require('../utils/router-helper')
+const decryptData = require('../utils/decrypt-data')
+const generateJwt = require('../utils/generate-jwt')
 
 const tags = ['api', 'user']
 
@@ -11,49 +13,47 @@ module.exports = [
   {
     _: ['/wx-login', 'POST'],
     async handler(request) {
-      const { code, encryptedData, iv, userInfo } = request.payload
-      const result = await axios
-        .get(urls.code2Session, {
-          params: {
-            appid: config.wxAppId,
-            js_code: code,
-            secret: config.wxSecret,
-            grant_type: 'authorization_code'
-          }
-        })
-        .then(sessionData => {
-          const {
-            session_key: sessionKey,
-            openid,
-            errmsg,
-            errcode
-          } = sessionData.data
-          if (sessionKey || openid) {
-            return { sessionKey, openid }
-          }
-          if (errcode || errmsg) {
-            return { errcode, errmsg }
-          }
-        })
-      return result
-      // return await models.user
-      //   .transaction(t =>
-      //     models.user.create(request.payload, { transaction: t })
-      //   )
-      //   .then(() => {
-      //     return 'success'
-      //   })
-      //   .catch(e => {
-      //     console.warn('e', e)
-      //     return 'error'
-      //   })
+      const { code, encryptedData, iv } = request.payload
+      const response = await axios.get(urls.code2Session, {
+        params: {
+          appid: config.wxAppId,
+          js_code: code,
+          secret: config.wxSecret,
+          grant_type: 'authorization_code'
+        }
+      })
+      const { session_key: sessionKey, openid, errmsg, errcode } = response.data
+      if (errcode) {
+        throw new Error(`~> code2Session err: ${errcode} ${errmsg}`)
+      }
+      const user = await models.user.findOrCreate({
+        where: { wx_openid: openid }
+      })
+      try {
+        const userInfo = decryptData(
+          encryptedData,
+          iv,
+          sessionKey,
+          config.wxAppId
+        )
+        await models.user.update(
+          { wx_user_info: userInfo },
+          { where: { wx_openid: openid } }
+        )
+        return generateJwt(user[0])
+      } catch (error) {
+        await models.user.update(
+          { wx_session_key: sessionKey },
+          { where: { wx_openid: openid } }
+        )
+        throw error
+      }
     },
     options: {
       tags,
       auth: false,
       validate: {
         payload: {
-          signature: Joi.string().description('微信用户信息签名'),
           encryptedData: Joi.string()
             .required()
             .description('加密信息'),
@@ -62,8 +62,7 @@ module.exports = [
             .description('解密向量'),
           code: Joi.string()
             .required()
-            .description('wx.login 识别码'),
-          userInfo: Joi.any().description('用户信息')
+            .description('wx.login 识别码')
         }
       }
     }

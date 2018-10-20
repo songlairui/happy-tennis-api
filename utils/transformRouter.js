@@ -23,7 +23,10 @@ function transformHandler(handler) {
       return await handler.apply(null, params)
     } catch (err) {
       const match = err.message.match(/^[\.\*\~\-\+\!\>\<\=]+\s*/)
-      if (!match) throw err
+      if (!match) {
+        console.warn('err', err)
+        throw err
+      }
       return { code: 400, msg: err.message.replace(match[0], '') }
     }
   }
