@@ -12,6 +12,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "axios": "^0.18.0",
     "env2": "^2.2.2",
     "hapi": "^17.6.0",
     "hapi-auth-jwt2": "^8.1.0",
