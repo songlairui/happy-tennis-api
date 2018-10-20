@@ -8,7 +8,10 @@ module.exports = {
         autoIncrement: true,
         primaryKey: true
       },
-      wx_openid: Sequelize.STRING,
+      wx_openid: {
+        type: Sequelize.STRING,
+        unique: true
+      },
       wx_user_info: Sequelize.JSONB,
       wx_session_key: Sequelize.STRING,
       last_login: Sequelize.DATE,
