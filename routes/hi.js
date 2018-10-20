@@ -1,4 +1,7 @@
 const Joi = require('joi')
+const axios = require('axios')
+const config = require('../config')
+const urls = require('../config/wx-url')
 const generateJwt = require('../utils/generate-jwt')
 
 const tags = ['api', 'tests']
@@ -51,6 +54,32 @@ module.exports = [
           pwd: Joi.string()
             .required()
             .description('身份标示')
+        }
+      }
+    }
+  },
+  {
+    _: ['/code2session', 'POST'],
+    async handler(request) {
+      const { code } = request.payload
+      const { data } = await axios.get(urls.code2Session, {
+        params: {
+          appid: config.wxAppId,
+          js_code: code,
+          secret: config.wxSecret,
+          grant_type: 'authorization_code'
+        }
+      })
+      return data
+    },
+    options: {
+      tags,
+      auth: false,
+      validate: {
+        payload: {
+          code: Joi.string()
+            .required()
+            .description('wx.login 获得的 code')
         }
       }
     }
