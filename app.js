@@ -19,6 +19,8 @@ const enableAuthJwt2 = require('./plugins/auth-jwt2')
 // 路由
 const routeHi = require('./routes/hi')
 const routeTrace = require('./routes/trace')
+const routeActivity = require('./routes/activity')
+const routeUser = require('./routes/user')
 
 const server = new Hapi.Server({
   port: config.port,
@@ -28,7 +30,9 @@ const server = new Hapi.Server({
 const init = async () => {
   await server.register([...pluginSwagger, pluginPagination, hapiAuthJwt2])
   enableAuthJwt2(server)
-  server.route(transformRouter([...routeHi, ...routeTrace]))
+  server.route(
+    transformRouter([...routeHi, ...routeTrace, ...routeActivity, ...routeUser])
+  )
   await server.start()
   console.warn('Server running at:', server.info.uri)
 }
