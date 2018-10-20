@@ -7,12 +7,9 @@ module.exports = (sequelize, DataTypes) =>
         autoIncrement: true,
         primaryKey: true
       },
-      wx_identity: DataTypes.STRING,
-      wx_id: DataTypes.STRING,
-      wx_signature: DataTypes.STRING,
-      wx_ticket: DataTypes.STRING,
-      expire_signature: DataTypes.DATE,
-      expire_ticket: DataTypes.DATE,
+      wx_openid: DataTypes.STRING,
+      wx_user_info: DataTypes.JSONB,
+      wx_session_key: DataTypes.STRING,
       last_login: DataTypes.DATE,
       created_at: DataTypes.DATE,
       updated_at: DataTypes.DATE

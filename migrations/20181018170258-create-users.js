@@ -8,12 +8,9 @@ module.exports = {
         autoIncrement: true,
         primaryKey: true
       },
-      wx_identity: Sequelize.STRING,
-      wx_id: Sequelize.STRING,
-      wx_signature: Sequelize.STRING,
-      wx_ticket: Sequelize.STRING,
-      expire_signature: Sequelize.DATE,
-      expire_ticket: Sequelize.DATE,
+      wx_openid: Sequelize.STRING,
+      wx_user_info: Sequelize.JSONB,
+      wx_session_key: Sequelize.STRING,
       last_login: Sequelize.DATE,
       created_at: Sequelize.DATE,
       updated_at: Sequelize.DATE
