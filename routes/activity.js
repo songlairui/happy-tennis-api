@@ -8,7 +8,7 @@ const Joitem = (desc, need) =>
     ? Joi.string()
         .required()
         .description(desc)
-    : Joi.string().description(desc)
+    : Joi.any().description(desc)
 
 module.exports = [
   {
