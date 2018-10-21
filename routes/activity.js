@@ -20,10 +20,24 @@ module.exports = [
     }
   },
   {
-    _: ['/activity/:id'],
+    _: ['/activity/{id}'],
+    async handler(request, h) {
+      const { id } = request.params
+      const [activity, err] = await models.activity.findAll({ where: { id } })
+      if (err) return h.response('multi item in id').code(409)
+      if (!activity) return h.response().code(404)
+      return activity
+    },
     options: {
       tags,
-      auth: false
+      auth: false,
+      validate: {
+        params: {
+          id: Joi.any()
+            .required()
+            .description('活动 id')
+        }
+      }
     }
   },
   {
@@ -50,17 +64,36 @@ module.exports = [
     }
   },
   {
-    _: ['/activity/:id', 'PUT'],
-    async handler(request) {},
+    _: ['/activity/{id}', 'PUT'],
+    async handler(request, h) {
+      const { id } = request.params
+      const [activity] = await models.activity.findAll({ where: { id } })
+      if (!activity) h.response('no activity').code(404)
+      await models.activity.update(request.payload, { where: { id } })
+      return h.response().code(204)
+    },
     options: {
       tags,
       validate: {
-        ...jwtHeaderDefine
+        ...jwtHeaderDefine,
+        params: {
+          id: Joi.any()
+            .required()
+            .description('活动 id')
+        },
+        payload: {
+          title: Joitem('活动名称'),
+          date: Joitem('活动日期'),
+          start: Joitem('开始时间'),
+          end: Joitem('结束时间'),
+          detail: Joitem('训练内容等'),
+          location: Joitem('地点')
+        }
       }
     }
   },
   {
-    _: ['/activity/:id', 'DELETE'],
+    _: ['/activity/{id}', 'DELETE'],
     async handler(request) {},
     options: {
       tags,
