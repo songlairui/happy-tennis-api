@@ -13,7 +13,11 @@ const Joitem = (desc, need) =>
 module.exports = [
   {
     _: ['/activities'],
-    async handler(request) {},
+    async handler() {
+      return await models.activity.findAll({
+        order: [['created_at', 'DESC']]
+      })
+    },
     options: {
       tags,
       auth: false
