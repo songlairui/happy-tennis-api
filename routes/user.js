@@ -76,9 +76,16 @@ module.exports = [
   },
   {
     _: ['/user/:id'],
-    async handler(request) {},
+    async handler(request) {
+      const { id } = request.auth.credentials
+      const [user] = await models.user.findAll({ where: { id } })
+      return user['wx_user_info']
+    },
     options: {
-      tags
+      tags,
+      validate: {
+        ...jwtHeaderDefine
+      }
     }
   },
   {
