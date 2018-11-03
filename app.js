@@ -1,6 +1,5 @@
 const path = require('path')
 const Hapi = require('hapi')
-const hapiAuthJwt2 = require('hapi-auth-jwt2')
 
 require('env2')(
   path.resolve(
@@ -28,8 +27,7 @@ const server = new Hapi.Server({
 })
 
 const init = async () => {
-  await server.register([...pluginSwagger, pluginPagination, hapiAuthJwt2])
-  enableAuthJwt2(server)
+  await server.register([...pluginSwagger, pluginPagination, enableAuthJwt2])
   server.route(
     transformRouter([...routeHi, ...routeTrace, ...routeActivity, ...routeUser])
   )
