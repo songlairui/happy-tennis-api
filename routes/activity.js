@@ -86,7 +86,6 @@ module.exports = [
     _: ['/activity/{activityId}/event/{event}'],
     async handler(request, h) {
       const { auth } = request
-      console.info('auth', auth)
       if (!auth || !auth.credentials) h.response().code(401)
       const { id } = auth.credentials
       // const [user] = await models.user.findAll({ where: { id } })
