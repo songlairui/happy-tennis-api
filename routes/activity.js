@@ -1,4 +1,5 @@
 const Joi = require('joi')
+const server = require('../prepare')
 const models = require('../models')
 const { jwtHeaderDefine } = require('../utils/router-helper')
 
@@ -12,6 +13,14 @@ const Joitem = (desc, need) =>
         .required()
         .description(desc)
     : Joi.any().description(desc)
+
+const grabUser = user => {
+  const {
+    id,
+    wx_user_info: { nickName, avatarUrl, gender }
+  } = user
+  return { id, nickName, avatarUrl, gender }
+}
 
 module.exports = [
   {
@@ -60,13 +69,7 @@ module.exports = [
           }
         }
       })
-      return users.map(user => {
-        const {
-          id,
-          wx_user_info: { nickName, avatarUrl, gender }
-        } = user
-        return { id, nickName, avatarUrl, gender }
-      })
+      return users.map(grabUser)
     },
     options: {
       tags,
@@ -82,7 +85,10 @@ module.exports = [
   {
     _: ['/activity/{activityId}/event/{event}'],
     async handler(request, h) {
-      const { id } = request.auth.credentials
+      const { auth } = request
+      console.info('auth', auth)
+      if (!auth || !auth.credentials) h.response().code(401)
+      const { id } = auth.credentials
       // const [user] = await models.user.findAll({ where: { id } })
       const { activityId, event } = request.params
       if (!activityStore[activityId]) activityStore[activityId] = {}
@@ -123,12 +129,17 @@ module.exports = [
         default:
           return false
       }
+      server.publish(
+        `/online/${activityId}/${event}`,
+        (await models.user.findAll({ where: { id } })).map(grabUser)[0]
+      )
       return store
     },
     options: {
       tags,
+      auth: false,
       validate: {
-        ...jwtHeaderDefine,
+        // ...jwtHeaderDefine,
         params: {
           activityId: Joitem('活动Id', 1),
           event: Joitem('客户端行为', 1)
