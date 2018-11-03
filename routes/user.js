@@ -75,7 +75,7 @@ module.exports = [
     }
   },
   {
-    _: ['/user/:id'],
+    _: ['/user'],
     async handler(request) {
       const { id } = request.auth.credentials
       const [user] = await models.user.findAll({ where: { id } })
@@ -85,6 +85,25 @@ module.exports = [
       tags,
       validate: {
         ...jwtHeaderDefine
+      }
+    }
+  },
+  {
+    _: ['/user/{id}'],
+    async handler(request) {
+      const { id } = request.params
+      const [user] = await models.user.findAll({ where: { id } })
+      return user['wx_user_info']
+    },
+    options: {
+      tags,
+      validate: {
+        ...jwtHeaderDefine,
+        params: {
+          id: Joi.string()
+            .required()
+            .description('用户ID')
+        }
       }
     }
   },
@@ -99,22 +118,32 @@ module.exports = [
     }
   },
   {
-    _: ['/user/:id', 'PUT'],
+    _: ['/user/{id}', 'PUT'],
     async handler(request) {},
     options: {
       tags,
       validate: {
-        ...jwtHeaderDefine
+        ...jwtHeaderDefine,
+        params: {
+          id: Joi.string()
+            .required()
+            .description('用户ID')
+        }
       }
     }
   },
   {
-    _: ['/user/:id', 'DELETE'],
+    _: ['/user/{id}', 'DELETE'],
     async handler(request) {},
     options: {
       tags,
       validate: {
-        ...jwtHeaderDefine
+        ...jwtHeaderDefine,
+        params: {
+          id: Joi.string()
+            .required()
+            .description('用户ID')
+        }
       }
     }
   }
