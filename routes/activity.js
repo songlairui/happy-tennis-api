@@ -2,6 +2,9 @@ const Joi = require('joi')
 const models = require('../models')
 const { jwtHeaderDefine } = require('../utils/router-helper')
 
+const { activityStore } = models.onlines
+const Op = models.Sequelize.Op
+
 const tags = ['api', 'activity']
 const Joitem = (desc, need) =>
   need
@@ -40,6 +43,95 @@ module.exports = [
           id: Joi.any()
             .required()
             .description('活动 id')
+        }
+      }
+    }
+  },
+  {
+    _: ['/activity/{activityId}/{detail}'],
+    async handler(request, h) {
+      const { activityId, detail } = request.params
+      const details = activityStore[activityId] || {}
+      const userIds = details[detail] || []
+      const users = await models.user.findAll({
+        where: {
+          id: {
+            [Op.in]: userIds
+          }
+        }
+      })
+      return users.map(user => {
+        const {
+          id,
+          wx_user_info: { nickName, avatarUrl, gender }
+        } = user
+        return { id, nickName, avatarUrl, gender }
+      })
+    },
+    options: {
+      tags,
+      validate: {
+        ...jwtHeaderDefine,
+        params: {
+          activityId: Joitem('活动Id', 1),
+          detail: Joitem('活动详情key', 1)
+        }
+      }
+    }
+  },
+  {
+    _: ['/activity/{activityId}/event/{event}'],
+    async handler(request, h) {
+      const { id } = request.auth.credentials
+      // const [user] = await models.user.findAll({ where: { id } })
+      const { activityId, event } = request.params
+      if (!activityStore[activityId]) activityStore[activityId] = {}
+      const store = activityStore[activityId]
+      ;['available', 'ask4off', 'traces', 'onlines'].forEach(key => {
+        if (!store[key]) store[key] = []
+      })
+
+      function append(arr, id) {
+        const newArr = arr.filter(userId => userId !== id)
+        newArr.push(id)
+        arr.splice(0, Infinity, ...newArr)
+      }
+      function remove(arr, id) {
+        const newArr = arr.filter(userId => userId !== id)
+        arr.splice(0, Infinity, ...newArr)
+      }
+
+      switch (event) {
+        case 'wander':
+          append(store.onlines, id)
+          append(store.traces, id)
+          break
+        case 'bye':
+          remove(store.onlines, id)
+          break
+        case 'join':
+          append(store.available, id)
+          remove(store.ask4off, id)
+          break
+        case 'ask4off':
+          append(store.ask4off, id)
+          remove(store.available, id)
+          break
+        case 'cancel':
+          remove(store.available, id)
+          break
+        default:
+          return false
+      }
+      return store
+    },
+    options: {
+      tags,
+      validate: {
+        ...jwtHeaderDefine,
+        params: {
+          activityId: Joitem('活动Id', 1),
+          event: Joitem('客户端行为', 1)
         }
       }
     }
