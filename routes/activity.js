@@ -6,6 +6,24 @@ const models = require('../models')
 const { jwtHeaderDefine } = require('../utils/router-helper')
 
 const { activityStore } = models.onlines
+const observerPool = {}
+
+const observers = new Proxy(observerPool, {
+  get(target, prop) {
+    if (!target[prop]) {
+      const observStore = Observable.create(observer => {
+        target[prop] = observer
+      })
+      observStore.pipe(throttleTime(4567)).subscribe(async store => {
+        await rawDraw(prop, store)
+      })
+    }
+    return target[prop]
+  },
+  set(target, prop, val) {
+    return target[prop]
+  }
+})
 
 const Op = models.Sequelize.Op
 
@@ -55,14 +73,6 @@ async function rawDraw(activityId, payload) {
   }
   await store.update(payload)
 }
-
-let observer
-const observStore = Observable.create(o => {
-  observer = o
-})
-observStore.pipe(throttleTime(4567)).subscribe(async ([activityId, store]) => {
-  await rawDraw(activityId, store)
-})
 
 module.exports = [
   {
@@ -171,7 +181,7 @@ module.exports = [
         `/online/${activityId}/${event}`,
         (await models.user.findAll({ where: { id } })).map(grabUser)[0]
       )
-      observer.next([activityId, store])
+      observers[activityId].next(store)
       return store
     },
     options: {
