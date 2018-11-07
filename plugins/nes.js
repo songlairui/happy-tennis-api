@@ -15,15 +15,13 @@ module.exports = [
     plugin: {
       name: 'nes-conf',
       register: async (server, options) => {
-        console.info('register')
         await server.register({
           plugin: Nes,
           options: { onConnection, onDisconnection }
         })
-        console.info('subscription')
         server.subscription('/online/{activityId}/{action}', {
-          filter: (path, message, options) => {
-            console.warn(path, message, options.credentials.id)
+          filter: () => {
+            /// path, message, options
             return true
             // return message.id !== options.credentials.id
           }

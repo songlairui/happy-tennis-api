@@ -1,9 +1,12 @@
+const { Observable } = require('rxjs')
+const { throttleTime } = require('rxjs/operators')
 const Joi = require('joi')
 const server = require('../prepare')
 const models = require('../models')
 const { jwtHeaderDefine } = require('../utils/router-helper')
 
 const { activityStore } = models.onlines
+
 const Op = models.Sequelize.Op
 
 const tags = ['api', 'activity']
@@ -21,6 +24,45 @@ const grabUser = user => {
   } = user
   return { id, nickName, avatarUrl, gender }
 }
+
+async function initStore(activityId) {
+  let store = activityStore[activityId]
+  if (store) {
+    ;['available', 'ask4off', 'traces', 'onlines'].forEach(key => {
+      !store[key] && (store[key] = [])
+    })
+    return store
+  }
+  ;[store] = await models.activityusers.findOrCreate({
+    where: {
+      activityId
+    },
+    attributes: ['activityId', 'available', 'ask4off', 'traces', 'onlines'],
+    defaults: {
+      available: [],
+      ask4off: [],
+      traces: [],
+      onlines: []
+    }
+  })
+  activityStore[activityId] = store
+  return store
+}
+async function rawDraw(activityId, payload) {
+  const store = activityStore[activityId]
+  if (!store || !payload) {
+    throw new Error('rawDraw 参数错误')
+  }
+  await store.update(payload)
+}
+
+let observer
+const observStore = Observable.create(o => {
+  observer = o
+})
+observStore.pipe(throttleTime(4567)).subscribe(async ([activityId, store]) => {
+  await rawDraw(activityId, store)
+})
 
 module.exports = [
   {
@@ -60,8 +102,10 @@ module.exports = [
     _: ['/activity/{activityId}/{detail}'],
     async handler(request, h) {
       const { activityId, detail } = request.params
-      const details = activityStore[activityId] || {}
-      const userIds = details[detail] || []
+      if (activityId === undefined) return h.response().code(404)
+      await initStore(activityId)
+      const userIds =
+        activityStore[activityId].get({ plain: true })[detail] || []
       const users = await models.user.findAll({
         where: {
           id: {
@@ -88,14 +132,9 @@ module.exports = [
       const { auth } = request
       if (!auth || !auth.credentials) h.response().code(401)
       const { id } = auth.credentials
-      // const [user] = await models.user.findAll({ where: { id } })
       const { activityId, event } = request.params
-      if (!activityStore[activityId]) activityStore[activityId] = {}
-      const store = activityStore[activityId]
-      ;['available', 'ask4off', 'traces', 'onlines'].forEach(key => {
-        if (!store[key]) store[key] = []
-      })
-
+      await initStore(activityId)
+      const store = activityStore[activityId].get({ plain: true })
       function append(arr, id) {
         const newArr = arr.filter(userId => userId !== id)
         newArr.push(id)
@@ -132,6 +171,7 @@ module.exports = [
         `/online/${activityId}/${event}`,
         (await models.user.findAll({ where: { id } })).map(grabUser)[0]
       )
+      observer.next([activityId, store])
       return store
     },
     options: {
@@ -204,7 +244,12 @@ module.exports = [
     options: {
       tags,
       validate: {
-        ...jwtHeaderDefine
+        ...jwtHeaderDefine,
+        params: {
+          id: Joi.any()
+            .required()
+            .description('活动 id')
+        }
       }
     }
   }
