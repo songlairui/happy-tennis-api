@@ -189,7 +189,7 @@ module.exports = [
       tags,
       auth: false,
       validate: {
-        ...jwtHeaderDefine,
+        // ...jwtHeaderDefine,
         params: {
           activityId: Joitem('活动Id', 1),
           event: Joitem('客户端行为', 1)
