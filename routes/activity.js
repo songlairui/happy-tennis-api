@@ -1,3 +1,4 @@
+const _ = require('lodash')
 const { Observable } = require('rxjs')
 const { throttleTime } = require('rxjs/operators')
 const Joi = require('joi')
@@ -140,8 +141,8 @@ module.exports = [
     _: ['/activity/{activityId}/event/{event}'],
     async handler(request, h) {
       const { auth } = request
-      if (!auth || !auth.credentials) h.response().code(401)
-      const { id } = auth.credentials
+      if (!auth || !auth.credentials) return h.response().code(401)
+      const { id } = auth.credentials || {}
       const { activityId, event } = request.params
       await initStore(activityId)
       const store = activityStore[activityId].get({ plain: true })
@@ -188,10 +189,50 @@ module.exports = [
       tags,
       auth: false,
       validate: {
-        // ...jwtHeaderDefine,
+        ...jwtHeaderDefine,
         params: {
           activityId: Joitem('活动Id', 1),
           event: Joitem('客户端行为', 1)
+        }
+      }
+    }
+  },
+  {
+    _: ['/activity/{activityId}/players'],
+    async handler(request) {
+      const { activityId } = request.params
+      await initStore(activityId)
+      const store = activityStore[activityId].get({ plain: true })
+      const ids = [].concat(...Object.values(store).filter(item => Array.isArray(item)))
+      const players = await models.user.findAll({
+        where: {
+          id: {
+            [Op.in]: ids
+          }
+        }
+      })
+      const dict = {}
+      players.forEach(player => {
+        dict[player.id] = grabUser(player)
+      })
+      const result = _.cloneDeep(store)
+      Object.values(result).filter(item => Array.isArray(item)).forEach(item => {
+        const newItem = item.map(id => dict[id])
+        item.splice(0, Infinity, ...newItem)
+      })
+      server.publish(
+        `/online/${activityId}/players`,
+        result
+      )
+      return result
+    },
+    options: {
+      tags,
+      auth: false,
+      validate: {
+        // ...jwtHeaderDefine,
+        params: {
+          activityId: Joitem('活动Id', 1)
         }
       }
     }
